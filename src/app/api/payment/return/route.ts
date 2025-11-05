@@ -21,10 +21,11 @@ export async function POST(req: NextRequest) {
     const host = req.headers.get('host') || 'localhost:3000';
     const protocol = host.includes('localhost') ? 'http' : 'https';
     
-    // 🔥 В DEV режимі вважаємо оплату успішною, якщо reasonCode = 1122 (тестовий шлюз)
+    // 🔥 Перевіряємо статус транзакції
     let isSuccess = transactionStatus === 'Approved';
     
-    if (DEV_MODE && reasonCode === '1122') {
+    // 🔥 ТІЛЬКИ в DEV режимі емулюємо успіх для тестового шлюзу
+    if (DEV_MODE && reasonCode === '1122' && transactionStatus === 'Declined') {
       console.log('⚠️ DEV MODE: Gate Declined detected, but treating as SUCCESS for testing');
       isSuccess = true;
       
@@ -63,63 +64,21 @@ export async function POST(req: NextRequest) {
     console.log(`✅ Redirecting to: ${redirectUrl}`);
 
     return new NextResponse(
-      `
-      <!DOCTYPE html>
-      <html>
-        <head>
+      `<head>
           <meta charset="utf-8">
           <title>Перенаправлення...</title>
-          <meta http-equiv="refresh" content="1;url=${redirectUrl}">
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              height: 100vh;
-              margin: 0;
-              background: linear-gradient(135deg, #1a1410 0%, #2a1e1a 100%);
-              color: #f8d9a6;
-            }
-            .loader {
-              text-align: center;
-            }
-            .spinner {
-              border: 4px solid rgba(248, 217, 166, 0.1);
-              border-radius: 50%;
-              border-top: 4px solid #f8d9a6;
-              width: 40px;
-              height: 40px;
-              animation: spin 1s linear infinite;
-              margin: 0 auto 20px;
-            }
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-            .dev-note {
-              margin-top: 20px;
-              padding: 10px;
-              background: rgba(212, 162, 59, 0.2);
-              border-radius: 8px;
-              font-size: 0.9em;
-            }
-          </style>
+          <meta http-equiv="refresh" content="0;url=${redirectUrl}">
         </head>
-        <body>
-          <div class="loader">
-            <div class="spinner"></div>
-            <p>Перенаправлення на сторінку результату оплати...</p>
-            ${DEV_MODE && reasonCode === '1122' ? '<p class="dev-note">🔧 DEV MODE: Тестова оплата емульована як успішна</p>' : ''}
+        <body style="font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: linear-gradient(135deg, #1a1410 0%, #2a1e1a 100%); color: #f8d9a6;">
+          <div style="text-align: center;">
+            <div style="border: 4px solid rgba(248, 217, 166, 0.1); border-radius: 50%; border-top: 4px solid #f8d9a6; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+            <p>Перенаправлення...</p>
+            ${DEV_MODE && reasonCode === '1122' ? '<p style="margin-top: 20px; padding: 10px; background: rgba(212, 162, 59, 0.2); border-radius: 8px;">🔧 DEV MODE: Емуляція успішної оплати</p>' : ''}
           </div>
           <script>
-            setTimeout(() => {
-              window.location.href = '${redirectUrl}';
-            }, 1000);
+            window.location.href = '${redirectUrl}';
           </script>
-        </body>
-      </html>
-      `,
+        </body>`,
       {
         status: 200,
         headers: {
