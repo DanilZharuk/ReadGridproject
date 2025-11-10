@@ -179,7 +179,7 @@ export default function HomePage() {
   const handleSearch = () => {
     const filtered = books.filter(book => {
       // 🆕 Фільтр premium книг
-      if (book.isPremium && !isPremium) return false;
+      // if (book.isPremium && !isPremium) return false;
 
       const matchesSearch =
         book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -203,7 +203,7 @@ export default function HomePage() {
   useEffect(() => {
     handleSearch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, genreFilter, yearFilter, isPremium]); // 🆕 додано isPremium
+  }, [searchTerm, genreFilter, yearFilter, ]); // 🆕 додано isPremium
 
   const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
   const startIndex = (currentPage - 1) * booksPerPage;
